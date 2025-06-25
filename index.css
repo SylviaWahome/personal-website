@@ -1,4 +1,4 @@
-/* General Styling */
+/* ---------- Base Styles ---------- */
 body {
   font-family: 'Georgia', serif;
   margin: 0;
@@ -6,9 +6,10 @@ body {
   background: #f5f9f6;
   color: #2c3e2f;
   line-height: 1.6;
+  transition: background 0.3s, color 0.3s;
 }
 
-/* Navigation */
+/* ---------- Navigation ---------- */
 nav {
   display: flex;
   justify-content: space-between;
@@ -37,7 +38,7 @@ nav ul li a:hover {
   color: #fff;
 }
 
-/* Sections */
+/* ---------- Sections ---------- */
 section {
   padding: 60px 20px;
   text-align: center;
@@ -55,7 +56,34 @@ section p {
   margin: 0 auto;
 }
 
-/* Contact Section */
+/* ---------- Services ---------- */
+.service-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.service-card {
+  background-color: #dcefe5;
+  border-radius: 10px;
+  padding: 20px;
+  width: 250px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+}
+
+.service-card h3 {
+  margin-bottom: 10px;
+  color: #264d36;
+}
+
+/* ---------- Contact ---------- */
 .contact-section {
   background: #e2f0e7;
 }
@@ -78,7 +106,37 @@ section p {
   text-decoration: underline;
 }
 
-/* Animations */
+/* ---------- Dark-mode Toggle ---------- */
+.toggle-btn {
+  background-color: #264d36;
+  color: #fff;
+  padding: 10px 20px;
+  margin: 20px auto 0 auto;
+  display: block;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.toggle-btn:hover {
+  background-color: #1b362a;
+}
+
+/* ---------- Search Bar ---------- */
+#search-input {
+  padding: 10px;
+  width: 50%;
+  max-width: 400px;
+  margin: 0 auto 20px auto;
+  display: block;
+  font-size: 1rem;
+  border: 2px solid #264d36;
+  border-radius: 5px;
+}
+
+/* ---------- Animations ---------- */
 .fade-in {
   opacity: 0;
   transform: translateY(20px);
@@ -96,7 +154,7 @@ section p {
   }
 }
 
-/* Falling Leaves Animation */
+/* Falling Leaves */
 .leaves {
   position: fixed;
   top: 0;
@@ -112,19 +170,24 @@ section p {
   top: -50px;
   width: 30px;
   height: 30px;
-  background-image: url('https://i.ibb.co/NsY8dsD/leaf.png'); /* Use your own leaf if desired */
+  background-image: url('https://i.ibb.co/NsY8dsD/leaf.png'); /* use your own leaf if preferred */
   background-size: cover;
   animation: fall linear infinite;
   opacity: 0.7;
 }
 
 @keyframes fall {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 0.8;
-  }
-  100% {
-    transform: translateY(100vh) rotate(360deg);
-    opacity: 0;
-  }
+  0% { transform: translateY(0)   rotate(0deg);   opacity: 0.8; }
+  100%{ transform: translateY(100vh) rotate(360deg); opacity: 0; }
 }
+
+/* ---------- Dark Mode Overrides ---------- */
+.dark-mode {
+  background: #1a1a1a;
+  color: #e4e4e4;
+}
+
+.dark-mode nav { background: #333; }
+.dark-mode .contact-section { background: #2b2b2b; }
+.dark-mode .service-card { background: #3a3a3a; }
+.dark-mode #search-input { border-color: #e4e4e4; }
