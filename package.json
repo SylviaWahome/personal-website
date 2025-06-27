@@ -4,8 +4,8 @@
   "description": "JSON Server backend for Shee Parlour",
   "private": true,
   "scripts": {
-    "start": "json-server --watch db.json --port 10000"
-  },
+  "start": "json-server --watch db.json --port $PORT --host 0.0.0.0"
+}
   "dependencies": {
     "json-server": "^0.17.3"
   }
