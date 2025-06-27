@@ -62,20 +62,20 @@ document.getElementById('service-list').addEventListener('click', event => {
 
 /* ===== Dark Mode Toggle ===== */
 function setupDarkMode() {
-  document.getElementById('dark-toggle').addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-  });
+  document.getElementById('dark-toggle')
+    .addEventListener('click', () => document.body.classList.toggle('dark-mode'));
 }
 
 /* ===== Live Search Filter ===== */
 function setupSearchFilter() {
-  document.getElementById('search-input').addEventListener('input', e => {
-    const term = e.target.value.toLowerCase();
-    const filtered = allServices.filter(service =>
-      service.name.toLowerCase().includes(term)
-    );
-    renderServices(filtered);
-  });
+  document.getElementById('search-input')
+    .addEventListener('input', e => {
+      const term = e.target.value.toLowerCase();
+      const filtered = allServices.filter(service =>
+        service.name.toLowerCase().includes(term)
+      );
+      renderServices(filtered);
+    });
 }
 
 /* ===== Falling Leaf Animation ===== */
@@ -89,4 +89,4 @@ function createFallingLeaves() {
     leaf.style.animationDelay = `${Math.random() * 5}s`;
     container.appendChild(leaf);
   }
-}
+};  /* <-- closing brace + semicolon added */
