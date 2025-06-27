@@ -1,34 +1,33 @@
-/* ---------- Local Service Data with Images ---------- */
-let allServices = [
-  { id: 1, name: "Herbal Facial",          price: "Ksh 1500", duration: "45 mins", image: "./images/herbal-facial.jpg" },
-  { id: 2, name: "Natural Hair Treatment", price: "Ksh 2000", duration: "1 hour",  image: "./images/hair-treatment.jpg" },
-  { id: 3, name: "Aloe Vera Massage",      price: "Ksh 1800", duration: "30 mins", image: "./images/aloe-massage.jpg" },
-  { id: 4, name: "Clay Mask Detox",        price: "Ksh 1700", duration: "40 mins", image: "./images/clay-detox.jpg" },
-  { id: 5, name: "Floral Pedicure",        price: "Ksh 1300", duration: "35 mins", image: "./images/floral-pedicure.jpg" }
-];
+/* ===== Fetch services.json (works on GitHub Pages) ===== */
+let allServices = [];
 
-/* ---------- DOM Ready ---------- */
 document.addEventListener('DOMContentLoaded', () => {
   createFallingLeaves();
   setupDarkMode();
   setupSearchFilter();
-  renderServices(allServices);
+  fetch('./services.json')
+    .then(res => res.json())
+    .then(data => {
+      allServices = data;
+      renderServices(allServices);
+    })
+    .catch(err => console.error('Could not load services.json', err));
 });
 
-/* ---------- Falling Leaves ---------- */
+/* ===== Falling-leaf animation (unchanged) ===== */
 function createFallingLeaves() {
   const box = document.getElementById('leaves');
   [...Array(15)].forEach(() => {
     const leaf = document.createElement('div');
     leaf.className = 'leaf';
-    leaf.style.left = `${Math.random()*100}vw`;
-    leaf.style.animationDuration = `${4 + Math.random()*5}s`;
-    leaf.style.animationDelay = `${Math.random()*5}s`;
+    leaf.style.left = `${Math.random() * 100}vw`;
+    leaf.style.animationDuration = `${4 + Math.random() * 5}s`;
+    leaf.style.animationDelay = `${Math.random() * 5}s`;
     box.appendChild(leaf);
   });
 }
 
-/* ---------- Render Service Cards ---------- */
+/* ===== Render cards ===== */
 function renderServices(list) {
   const wrap = document.getElementById('service-list');
   wrap.innerHTML = '';
@@ -48,32 +47,29 @@ function renderServices(list) {
   });
 }
 
-/* ---------- Card Actions (Edit / Delete) ---------- */
+/* ===== Edit & Delete via event delegation ===== */
 document.getElementById('service-list').addEventListener('click', e => {
   const card = e.target.closest('.service-card');
   if (!card) return;
-
   const id = +card.dataset.id;
 
-  /* Delete card */
   if (e.target.classList.contains('delete-btn')) {
     allServices = allServices.filter(s => s.id !== id);
     renderServices(allServices);
   }
 
-  /* Edit card: just alert user they can edit inline */
   if (e.target.classList.contains('edit-btn')) {
-    alert('Simply click on the text you wish to edit, make your change, and click anywhere outside the card. Changes are in-memory and will reset on page refresh.');
+    alert('Click directly on the text to edit it. Changes are temporary (in-memory).');
   }
 });
 
-/* ---------- Dark Mode ---------- */
+/* ===== Dark mode toggle ===== */
 function setupDarkMode() {
   document.getElementById('dark-toggle')
     .addEventListener('click', () => document.body.classList.toggle('dark-mode'));
 }
 
-/* ---------- Live Search ---------- */
+/* ===== Live search filter ===== */
 function setupSearchFilter() {
   document.getElementById('search-input')
     .addEventListener('input', e => {
