@@ -1,0 +1,12 @@
+{
+  "name": "shee-parlour-api",
+  "version": "1.0.0",
+  "description": "JSON Server backend for Shee Parlour",
+  "private": true,
+  "scripts": {
+    "start": "json-server --watch db.json --port 10000"
+  },
+  "dependencies": {
+    "json-server": "^0.17.3"
+  }
+}

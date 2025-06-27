@@ -1,82 +1,139 @@
-/* ===== Fetch services.json (works on GitHub Pages) ===== */
-let allServices = [];
-
-document.addEventListener('DOMContentLoaded', () => {
-  createFallingLeaves();
-  setupDarkMode();
-  setupSearchFilter();
-  fetch('./services.json')
-    .then(res => res.json())
-    .then(data => {
-      allServices = data;
-      renderServices(allServices);
-    })
-    .catch(err => console.error('Could not load services.json', err));
-});
-
-/* ===== Falling-leaf animation (unchanged) ===== */
-function createFallingLeaves() {
-  const box = document.getElementById('leaves');
-  [...Array(15)].forEach(() => {
-    const leaf = document.createElement('div');
-    leaf.className = 'leaf';
-    leaf.style.left = `${Math.random() * 100}vw`;
-    leaf.style.animationDuration = `${4 + Math.random() * 5}s`;
-    leaf.style.animationDelay = `${Math.random() * 5}s`;
-    box.appendChild(leaf);
-  });
+/* ---------- Base ---------- */
+body {
+  font-family: 'Georgia', serif;
+  margin: 0;
+  padding: 0;
+  background: #f5f9f6;
+  color: #2c3e2f;
+  line-height: 1.6;
+  transition: background 0.3s, color 0.3s;
 }
 
-/* ===== Render cards ===== */
-function renderServices(list) {
-  const wrap = document.getElementById('service-list');
-  wrap.innerHTML = '';
-  list.forEach(svc => {
-    const card = document.createElement('div');
-    card.className = 'service-card';
-    card.dataset.id = svc.id;
-    card.innerHTML = `
-      <img src="${svc.image}" alt="${svc.name}" class="service-img">
-      <h3 contenteditable="true">${svc.name}</h3>
-      <p contenteditable="true"><strong>Price:</strong> ${svc.price}</p>
-      <p contenteditable="true"><strong>Duration:</strong> ${svc.duration}</p>
-      <button class="btn edit-btn">Edit</button>
-      <button class="btn delete-btn">Delete</button>
-    `;
-    wrap.appendChild(card);
-  });
+/* ---------- Navigation ---------- */
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #a3cbbf;
+  padding: 10px 20px;
+}
+nav .logo img { width: 150px; }
+nav ul { list-style: none; display: flex; gap: 15px; }
+nav a { text-decoration: none; color: #1d2b22; font-weight: bold; }
+nav a:hover { color: #fff; }
+
+/* ---------- Sections ---------- */
+section { padding: 60px 20px; text-align: center; }
+section h1, section h2 { font-size: 2.5rem; margin-bottom: 20px; color: #264d36; }
+section p { font-size: 1.1rem; max-width: 800px; margin: 0 auto; }
+
+/* ---------- Services ---------- */
+.service-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+.service-card {
+  background: #dcefe5;
+  border-radius: 10px;
+  padding: 20px;
+  width: 250px;
+  box-shadow: 0 4px 8px rgba(0,0,0,.1);
+  transition: transform 0.2s;
+  text-align: left;
+}
+.service-card:hover { transform: translateY(-5px); }
+
+/* Service image */
+.service-img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
 }
 
-/* ===== Edit & Delete via event delegation ===== */
-document.getElementById('service-list').addEventListener('click', e => {
-  const card = e.target.closest('.service-card');
-  if (!card) return;
-  const id = +card.dataset.id;
+/* ---------- Buttons ---------- */
+.btn {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  margin: 6px 4px 0 0;
+}
+.edit-btn   { background: #4caf50; }
+.delete-btn { background: #e53935; }
+.btn:hover  { opacity: 0.85; }
 
-  if (e.target.classList.contains('delete-btn')) {
-    allServices = allServices.filter(s => s.id !== id);
-    renderServices(allServices);
-  }
+/* ---------- Contact Section ---------- */
+.contact-section { background: #e2f0e7; }
+.contact-section ul { list-style: none; padding: 0; }
+.contact-section li { margin: 10px 0; }
+.contact-section a { color: #2c3e2f; text-decoration: none; }
+.contact-section a:hover { text-decoration: underline; }
 
-  if (e.target.classList.contains('edit-btn')) {
-    alert('Click directly on the text to edit it. Changes are temporary (in-memory).');
-  }
-});
+/* ---------- Toggle & Search ---------- */
+.toggle-btn {
+  background: #264d36;
+  color: #fff;
+  padding: 10px 20px;
+  margin: 20px auto 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.toggle-btn:hover { background: #1b362a; }
 
-/* ===== Dark mode toggle ===== */
-function setupDarkMode() {
-  document.getElementById('dark-toggle')
-    .addEventListener('click', () => document.body.classList.toggle('dark-mode'));
+#search-input {
+  padding: 10px;
+  width: 50%;
+  max-width: 400px;
+  margin: 0 auto 20px;
+  font-size: 1rem;
+  border: 2px solid #264d36;
+  border-radius: 5px;
 }
 
-/* ===== Live search filter ===== */
-function setupSearchFilter() {
-  document.getElementById('search-input')
-    .addEventListener('input', e => {
-      const term = e.target.value.toLowerCase();
-      const filtered = allServices.filter(s =>
-        s.name.toLowerCase().includes(term)
-      );
-      renderServices(filtered);
-    });
+/* ---------- Fade-in (for Contact) ---------- */
+.fade-in { opacity: 0; transform: translateY(20px); animation: fadeIn 1.5s forwards; }
+.fade-in.delay { animation-delay: 1s; }
+@keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
+/* ---------- Falling Leaves ---------- */
+.leaves {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
 }
+.leaf {
+  position: absolute;
+  top: -50px;
+  width: 30px;
+  height: 30px;
+  background: url('./images/leaf.png') center/cover;
+  opacity: 0.7;
+  animation: fall linear infinite;
+}
+@keyframes fall {
+  0%   { transform: translateY(0) rotate(0deg);   opacity: 0.8; }
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+}
+
+/* ---------- Dark Mode Overrides ---------- */
+.dark-mode { background: #1a1a1a; color: #e4e4e4; }
+.dark-mode nav { background: #333; }
+.dark-mode .contact-section { background: #2b2b2b; }
+.dark-mode .service-card { background: #3a3a3a; }
+.dark-mode #search-input { border-color: #e4e4e4; }
+.dark-mode .edit-btn   { background: #2e7d32; }
+.dark-mode .delete-btn { background: #b71c1c; }

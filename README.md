@@ -1,64 +1,64 @@
-# 💚 Shee Parlour - Nature-Inspired Beauty Website
+# 💚 Shee Parlour – Nature-Inspired Beauty Website
 
-Welcome to **Shee Parlour**, a nature-inspired one-page website created as the final individual capstone project for SDF-FT14B. This site showcases a beauty and wellness brand that aligns nature with self-care using HTML, CSS, and JavaScript.
-
----
-
-## 🌸 Project Description
-
-Shee Parlour is a fictional beauty brand that celebrates natural wellness. The website is designed to reflect tranquility, elegance, and user interactivity, offering users information about services, contact info, and real-time interactivity — all without page reloads.
+Welcome to **Shee Parlour**, a nature-inspired single-page website created as the final individual capstone project for **SDF-FT14B**. It blends tranquility, sustainable self-care, and elegant web interactivity.
 
 ---
 
-## 📌 Features
+## 🌸 Project Overview
+The site showcases five spa & salon services, complete with images, prices, and durations. Users can:
 
-- ✅ **Single Page App (SPA)** – Built using only `index.html` with no page reloads.
-- ✅ **Falling Leaf Animation** – Pure CSS + JS effect to enhance natural ambiance.
-- ✅ **Dark Mode Toggle** – Switch between light and dark themes.
-- ✅ **Live Search Bar** – Filter through available services instantly.
-- ✅ **Editable Services** – Edit or delete any service card directly from the page (in-memory only).
-- ✅ **Responsive Design** – Mobile-friendly layout and styling.
+* Toggle dark / light themes  
+* Search services live  
+* Edit or delete any service card (changes held in-browser)  
+* Enjoy a calming falling-leaf animation – pure CSS + JS  
+* Browse – no page reloads (true SPA)
 
 ---
 
-## 🖼 Services Offered
+## 📌 Key Features
+| Feature | Details |
+|---------|---------|
+| **SPA** | One `index.html`, section links only |
+| Dark Mode | Click once to swap themes |
+| Live Search | `input` event filters service names |
+| Edit / Delete | Inline editing via `contenteditable`; delete removes card (UI only) |
+| Responsive | Flexbox + mobile-friendly layout |
+| Animated Leaves | CSS `@keyframes` + JavaScript seed |
 
-Each service is displayed with a thumbnail, name, price, and duration. You can also edit or delete each one directly in the browser.
+---
 
-1. **Herbal Facial** – Ksh 1500 (45 mins)
-2. **Natural Hair Treatment** – Ksh 2000 (1 hour)
-3. **Aloe Vera Massage** – Ksh 1800 (30 mins)
-4. **Clay Mask Detox** – Ksh 1700 (40 mins)
-5. **Floral Pedicure** – Ksh 1300 (35 mins)
+## 🖼 Services
+1. Herbal Facial – Ksh 1500, 45 mins  
+2. Natural Hair Treatment – Ksh 2000, 1 hour  
+3. Aloe Vera Massage – Ksh 1800, 30 mins  
+4. Clay Mask Detox – Ksh 1700, 40 mins  
+5. Floral Pedicure – Ksh 1300, 35 mins  
 
-All images are stored locally in the `/images/` folder.
+Service images live in `/images/` and are also referenced by absolute URLs for the API.
 
 ---
 
 ## 🛠 Tech Stack
-
-- **HTML5** – Semantic, accessible structure
-- **CSS3** – Responsive layout + animations
-- **JavaScript (ES6)** – DOM manipulation, event listeners, array methods
-
----
-
-## 🔄 Interactivity and Functionality
-
-| Feature        | Type          | Description                                         |
-|----------------|---------------|-----------------------------------------------------|
-| Dark Mode      | `click`       | Adds/removes `.dark-mode` on body                   |
-| Search Filter  | `input`       | Filters services based on name                     |
-| Edit Service   | `click`       | In-place editing of service data                   |
-| Delete Service | `click`       | Removes a service card from the page               |
-
-Array methods used include `forEach()`, `filter()`, and `map()`.
+| Layer | Tech |
+|-------|------|
+| Frontend | **HTML 5, CSS 3, JavaScript (ES6)** |
+| Backend API | **JSON Server** deployed on **Render** |
+| Hosting | GitHub Pages (frontend) + Render (backend) |
 
 ---
 
-## 🔗 How to Run the Project
+## 🔗 Live Demo
+* **Frontend (GitHub Pages)**  
+  <https://sylviawahome.github.io/personal-website/>
 
-1. Clone the repo:
-   ```bash
-   git clone https://github.com/SylviaWahome/personal-website.git
-   cd personal-website
+* **Backend API (Render)**  
+  <https://shee-parlour-api.onrender.com/services>
+
+---
+
+## 🚀 Running Locally
+
+### 1 Clone the frontend
+```bash
+git clone https://github.com/SylviaWahome/personal-website.git
+cd personal-website
