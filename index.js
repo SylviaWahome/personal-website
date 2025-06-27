@@ -1,3 +1,6 @@
+/* ===== Config ===== */
+const API_URL = 'https://shee-parlour-api.onrender.com/services';   // ← change if your Render URL differs
+
 /* ===== Global State ===== */
 let allServices = [];
 
@@ -9,84 +12,86 @@ document.addEventListener('DOMContentLoaded', () => {
   loadServices();
 });
 
-/* ===== Load Services from services.json (GitHub Pages Compatible) ===== */
+/* ===== Load Services from Render ===== */
 function loadServices() {
-  fetch('./services.json')
-    .then(response => response.json())
+  fetch(API_URL)
+    .then(res => res.json())
     .then(data => {
       allServices = data;
+      document.getElementById('loading-text').style.display = 'none';
       renderServices(allServices);
     })
-    .catch(error => console.error('Error loading services:', error));
+    .catch(err => {
+      console.error('Error loading services:', err);
+      document.getElementById('loading-text').textContent = 'Failed to load services.';
+    });
 }
 
 /* ===== Render Service Cards ===== */
 function renderServices(list) {
-  const container = document.getElementById('service-list');
-  container.innerHTML = '';
+  const wrap = document.getElementById('service-list');
+  wrap.innerHTML = '';
 
-  list.forEach(service => {
+  list.forEach(svc => {
     const card = document.createElement('div');
     card.className = 'service-card';
-    card.dataset.id = service.id;
-
+    card.dataset.id = svc.id;
     card.innerHTML = `
-      <img src="${service.image}" alt="${service.name}" class="service-img" />
-      <h3 contenteditable="true">${service.name}</h3>
-      <p contenteditable="true"><strong>Price:</strong> ${service.price}</p>
-      <p contenteditable="true"><strong>Duration:</strong> ${service.duration}</p>
+      <img src="${svc.image}" alt="${svc.name}" class="service-img" />
+      <h3 contenteditable="true">${svc.name}</h3>
+      <p contenteditable="true"><strong>Price:</strong> ${svc.price}</p>
+      <p contenteditable="true"><strong>Duration:</strong> ${svc.duration}</p>
       <button class="btn edit-btn">Edit</button>
       <button class="btn delete-btn">Delete</button>
     `;
-
-    container.appendChild(card);
+    wrap.appendChild(card);
   });
 }
 
-/* ===== Handle Edit & Delete ===== */
-document.getElementById('service-list').addEventListener('click', event => {
-  const card = event.target.closest('.service-card');
+/* ===== Edit & Delete ===== */
+document.getElementById('service-list').addEventListener('click', e => {
+  const card = e.target.closest('.service-card');
   if (!card) return;
 
   const id = +card.dataset.id;
 
-  if (event.target.classList.contains('delete-btn')) {
-    allServices = allServices.filter(service => service.id !== id);
+  if (e.target.classList.contains('delete-btn')) {
+    allServices = allServices.filter(s => s.id !== id);
     renderServices(allServices);
   }
 
-  if (event.target.classList.contains('edit-btn')) {
-    alert('Click directly on the text to edit. Changes will disappear on refresh.');
+  if (e.target.classList.contains('edit-btn')) {
+    alert('Click directly on text to edit. Changes reset on refresh.');
   }
 });
 
-/* ===== Dark Mode Toggle ===== */
+/* ===== Dark Mode ===== */
 function setupDarkMode() {
   document.getElementById('dark-toggle')
     .addEventListener('click', () => document.body.classList.toggle('dark-mode'));
 }
 
-/* ===== Live Search Filter ===== */
+/* ===== Live Search ===== */
 function setupSearchFilter() {
   document.getElementById('search-input')
     .addEventListener('input', e => {
       const term = e.target.value.toLowerCase();
-      const filtered = allServices.filter(service =>
-        service.name.toLowerCase().includes(term)
+      const filtered = allServices.filter(s =>
+        s.name.toLowerCase().includes(term)
       );
       renderServices(filtered);
     });
 }
 
-/* ===== Falling Leaf Animation ===== */
+/* ===== Falling Leaves ===== */
 function createFallingLeaves() {
-  const container = document.getElementById('leaves');
-  for (let i = 0; i < 15; i++) {
+  const box = document.getElementById('leaves');
+  [...Array(15)].forEach(() => {
     const leaf = document.createElement('div');
     leaf.className = 'leaf';
     leaf.style.left = `${Math.random() * 100}vw`;
     leaf.style.animationDuration = `${4 + Math.random() * 5}s`;
     leaf.style.animationDelay = `${Math.random() * 5}s`;
-    container.appendChild(leaf);
-  }
-};  /* <-- closing brace + semicolon added */
+    box.appendChild(leaf);
+  });
+}
