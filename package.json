@@ -4,8 +4,9 @@
   "description": "Shee Parlour project for Render deployment",
   "main": "index.js",
   "scripts": {
-    "start": "json-server --watch db.json --port $PORT --host 0.0.0.0"
-  },
+  "start": "node server.js"
+},
+
   "dependencies": {
     "json-server": "^0.17.3"
   },
