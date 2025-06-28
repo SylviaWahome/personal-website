@@ -2,7 +2,10 @@
 let allServices = [];
 
 /* ===== API Configuration ===== */
-const API_BASE_URL = 'http://localhost:3001'; // json-server URL
+const API_BASE_URL = window.location.hostname.includes('localhost')
+  ? 'http://localhost:3001'                     // local dev
+  : 'https://personal-website-del6.onrender.com'; // production
+
 
 /* ===== API Functions ===== */
 // GET all services
