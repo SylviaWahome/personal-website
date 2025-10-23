@@ -1,70 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Shee Parlour</title>
   <link rel="stylesheet" href="index.css" />
 </head>
 <body>
-  <!-- ========= NAVIGATION ========= -->
-  <nav>
-    <div class="logo">
-      <img src="./images/logo.jpg" alt="Shee Parlour Logo" />
+  <div class="page-bg" aria-hidden="true"></div>
+
+  <header class="glass-nav">
+    <div class="nav-inner">
+      <div class="brand">
+        <img src="./images/logo.jpg" alt="Shee Parlour Logo" class="logo" />
+        <span class="brand-text">Shee Parlour</span>
+      </div>
+      <nav>
+        <a href="#home">Home</a>
+        <a href="#about">About</a>
+        <a href="#services">Services</a>
+        <a href="#contact">Contact</a>
+      </nav>
     </div>
-    <ul>
-      <li><a href="#home">Home</a></li>
-      <li><a href="#about">About</a></li>
-      <li><a href="#services">Services</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
-  </nav>
+  </header>
 
-  <!-- Dark-mode toggle -->
-  <button id="dark-toggle" class="toggle-btn">Toggle Dark Mode</button>
+  <main class="container">
+    <!-- HOME -->
+    <section id="home" class="glass-panel hero">
+      <div class="hero-left">
+        <h1>Welcome to Shee Parlour</h1>
+        <p class="muted">Shee Parlour inspires beauty through nature — gentle, sustainable, and serene.</p>
 
-  <!-- Falling leaves -->
-  <div class="leaves" id="leaves"></div>
+        <div class="controls">
+          <button id="dark-toggle" class="control-btn">🌙 Dark Mode</button>
+          <input id="search-input" type="search" placeholder="Search services..." class="search" />
+        </div>
+      </div>
+      <div class="hero-right">
+        <img src="./images/herbal-facial.jpg" alt="Sample" class="hero-img" />
+      </div>
+    </section>
 
-  <!-- ========= HOME ========= -->
-  <section id="home">
-    <h1>Welcome to Shee Parlour</h1>
-    <p>
-      Shee Parlour inspires beauty through nature by harmonizing self-care with the rhythms of the earth…
-    </p>
-  </section>
+    <!-- ABOUT -->
+    <section id="about" class="glass-panel">
+      <h2>About Us</h2>
+      <p>At Shee Parlour we blend natural ingredients, calming ambience and expert care to celebrate your unique beauty.</p>
+    </section>
 
-  <!-- ========= ABOUT ========= -->
-  <section id="about">
-    <h2>About Us</h2>
-    <p>
-      At Shee Parlour, our vision is to bring beauty and wellness into harmony with nature…
-    </p>
-  </section>
+    <!-- SERVICES -->
+    <section id="services" class="glass-panel">
+      <h2>Our Nature-Inspired Services</h2>
+      <p id="loading-text" class="muted">Loading services…</p>
+      <div id="service-list" class="service-container" aria-live="polite"></div>
+    </section>
 
-  <!-- ========= SERVICES ========= -->
-  <section id="services">
-    <h2>Our Nature-Inspired Services</h2>
-
-    <input type="text" id="search-input" placeholder="Search services…" />
-    <p id="loading-text">Loading services…</p>
-    <div id="service-list" class="service-container"></div>
-  </section>
-
-  <!-- ========= CONTACT ========= -->
-  <section id="contact" class="contact-section">
-    <h2 class="fade-in">Contact Us</h2>
-    <div class="fade-in delay">
-      <p>We’d love to hear from you. Whether you’re booking a session or just saying hi—Shee Parlour is here to serve.</p>
-      <ul>
+    <!-- CONTACT -->
+    <section id="contact" class="glass-panel">
+      <h2>Contact Us</h2>
+      <ul class="contact-list">
         <li><strong>Email:</strong> <a href="mailto:sylviawanjiru804@gmail.com">sylviawanjiru804@gmail.com</a></li>
         <li><strong>Phone:</strong> <a href="tel:+254720702829">0720 702 829</a></li>
         <li><strong>Location:</strong> Mathare, Nairobi, Kenya</li>
       </ul>
-    </div>
-  </section>
+    </section>
+  </main>
 
-  <!-- Main JS -->
+  <!-- Modal root (add service) -->
+  <div id="modal-root"></div>
+
+  <!-- Leaves + notifications -->
+  <div class="leaves" id="leaves" aria-hidden="true"></div>
+  <div id="notification-root" aria-hidden="true"></div>
+
   <script src="index.js" defer></script>
 </body>
 </html>

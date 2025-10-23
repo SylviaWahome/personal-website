@@ -1,76 +1,65 @@
-/* ===== Global State ===== */
+/* ===== Config ===== */
+const API_BASE = 'https://personal-website-del6.onrender.com'; // your Render domain (no trailing slash)
+const SERVICES_ENDPOINT = `${API_BASE}/services`;
+
+/* ===== State ===== */
 let allServices = [];
 
-/* ===== API Configuration ===== */
-const API_BASE_URL = window.location.hostname.includes('localhost')
-  ? 'http://localhost:3001'                     // local dev
-  : 'https://personal-website-del6.onrender.com'; // production
+/* ===== Utilities ===== */
+function escapeHtml(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
+function showNotification(msg, type = 'info') {
+  const n = document.createElement('div');
+  n.className = `notification ${type}`;
+  n.textContent = msg;
+  document.getElementById('notification-root').appendChild(n);
+  setTimeout(() => n.classList.add('show'), 50);
+  setTimeout(() => {
+    n.classList.remove('show');
+    setTimeout(() => n.remove(), 300);
+  }, 3000);
+}
 
-/* ===== API Functions ===== */
-// GET all services
+/* ===== API actions ===== */
 async function fetchServices() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/services`);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching services:', error);
-    throw error;
-  }
+  const res = await fetch(SERVICES_ENDPOINT);
+  if (!res.ok) throw new Error('Failed to fetch services');
+  return res.json();
 }
 
-// POST new service
-async function createService(serviceData) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/services`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(serviceData)
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return await response.json();
-  } catch (error) {
-    console.error('Error creating service:', error);
-    throw error;
-  }
+async function createService(data) {
+  const res = await fetch(SERVICES_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error('Failed to create service');
+  return res.json();
 }
 
-// PATCH/UPDATE existing service
-async function updateService(id, serviceData) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/services/${id}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(serviceData)
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return await response.json();
-  } catch (error) {
-    console.error('Error updating service:', error);
-    throw error;
-  }
+async function updateService(id, data) {
+  const res = await fetch(`${SERVICES_ENDPOINT}/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error('Failed to update service');
+  return res.json();
 }
 
-// DELETE service
 async function deleteService(id) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/services/${id}`, {
-      method: 'DELETE'
-    });
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    return true;
-  } catch (error) {
-    console.error('Error deleting service:', error);
-    throw error;
-  }
+  const res = await fetch(`${SERVICES_ENDPOINT}/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('Failed to delete service');
+  return true;
 }
 
-/* ===== DOM Ready ===== */
+/* ===== Init ===== */
 document.addEventListener('DOMContentLoaded', () => {
   createFallingLeaves();
   setupDarkMode();
@@ -78,55 +67,36 @@ document.addEventListener('DOMContentLoaded', () => {
   loadServices();
 });
 
-/* ===== Load Services from API ===== */
+/* ===== Load ===== */
 async function loadServices() {
   try {
-    allServices = await fetchServices();
+    const data = await fetchServices();
+    allServices = data;
+    document.getElementById('loading-text').style.display = 'none';
     renderServices(allServices);
-  } catch (error) {
-    console.error('Failed to load services:', error);
-    // Fallback to local data if API fails
+  } catch (err) {
+    console.error('API failed:', err);
+    // fallback to local db.json
     try {
-      const response = await fetch('./db.json');
-      const data = await response.json();
-      allServices = data.services;
+      const fallback = await fetch('./db.json');
+      const json = await fallback.json();
+      allServices = json.services || [];
+      document.getElementById('loading-text').style.display = 'none';
       renderServices(allServices);
-    } catch (fallbackError) {
-      console.error('Fallback also failed:', fallbackError);
+      showNotification('Loaded local data (offline)', 'info');
+    } catch (e) {
+      document.getElementById('loading-text').textContent = 'Failed to load services.';
+      showNotification('Unable to load services', 'error');
     }
   }
 }
 
-/* ===== Render Service Cards ===== */
-//function renderServices(list) {
-//  const container = document.getElementById('service-list');
-//  container.innerHTML = '';
-//
-//  list.forEach(service => {
-//    const card = document.createElement('div');
-//    card.className = 'service-card';
-//    card.dataset.id = service.id;
-//
-//    card.innerHTML = `
-//      <img src="${service.image}" alt="${service.name}" class="service-img" />
-//      <h3 contenteditable="true">${service.name}</h3>
-//      <p contenteditable="true"><strong>Price:</strong> ${service.price}</p>
-//      <p contenteditable="true"><strong>Duration:</strong> ${service.duration}</p>
-//      <button class="btn edit-btn">Edit</button>
-//      <button class="btn delete-btn">Delete</button>
-//    `;
-//
-//    container.appendChild(card);
-//  });
-//}
-/* my version of the code */
-
-/* ===== Render Service Cards with API Integration ===== */
+/* ===== Render services (with Add card) ===== */
 function renderServices(list) {
   const container = document.getElementById('service-list');
   container.innerHTML = '';
 
-  // Add "Add New Service" card at the beginning
+  // Add New card
   const addCard = document.createElement('div');
   addCard.className = 'service-card add-new-card';
   addCard.innerHTML = `
@@ -139,314 +109,226 @@ function renderServices(list) {
   addCard.addEventListener('click', showAddServiceForm);
   container.appendChild(addCard);
 
-  // Render existing services
-  list.forEach(service => {
+  list.forEach(svc => {
     const card = document.createElement('div');
     card.className = 'service-card';
-    card.dataset.id = service.id;
-
+    card.dataset.id = svc.id;
     card.innerHTML = `
-      <img src="${service.image}" alt="${service.name}" class="service-img" />
-      <h3 class="service-name" data-field="name">${service.name}</h3>
-      <p class="service-price" data-field="price"><strong>Price:</strong> ${service.price}</p>
-      <p class="service-duration" data-field="duration"><strong>Duration:</strong> ${service.duration}</p>
+      <img src="${escapeHtml(svc.image)}" alt="${escapeHtml(svc.name)}" class="service-img" />
+      <h3 class="service-name">${escapeHtml(svc.name)}</h3>
+      <p class="service-price"><strong>Price:</strong> ${escapeHtml(svc.price)}</p>
+      <p class="service-duration"><strong>Duration:</strong> ${escapeHtml(svc.duration)}</p>
+      <p class="service-category"><strong>Category:</strong> ${escapeHtml(svc.category || '')}</p>
+      <p class="service-description">${escapeHtml(svc.description || '')}</p>
       <div class="card-actions">
-        <button class="btn edit-btn" data-id="${service.id}">Edit</button>
-        <button class="btn save-btn" data-id="${service.id}" style="display:none;">Save</button>
-        <button class="btn cancel-btn" data-id="${service.id}" style="display:none;">Cancel</button>
-        <button class="btn delete-btn" data-id="${service.id}">Delete</button>
+        <button class="btn edit-btn" data-id="${svc.id}">Edit</button>
+        <button class="btn save-btn" data-id="${svc.id}" style="display:none">Save</button>
+        <button class="btn cancel-btn" data-id="${svc.id}" style="display:none">Cancel</button>
+        <button class="btn delete-btn" data-id="${svc.id}">Delete</button>
       </div>
     `;
-
     container.appendChild(card);
   });
 }
 
-
-/* ===== Add New Service Form ===== */
+/* ===== Add service modal ===== */
 function showAddServiceForm() {
-  const formHtml = `
+  const modalHtml = `
     <div class="modal-overlay" id="add-service-modal">
-      <div class="modal-content">
+      <div class="modal-content" role="dialog" aria-modal="true">
         <h2>Add New Service</h2>
         <form id="add-service-form">
-          <div class="form-group">
-            <label for="service-name">Service Name:</label>
-            <input type="text" id="service-name" required>
-          </div>
-          <div class="form-group">
-            <label for="service-price">Price:</label>
-            <input type="text" id="service-price" placeholder="e.g., Ksh 1500" required>
-          </div>
-          <div class="form-group">
-            <label for="service-duration">Duration:</label>
-            <input type="text" id="service-duration" placeholder="e.g., 45 mins" required>
-          </div>
-          <div class="form-group">
-            <label for="service-image">Image URL:</label>
-            <input type="url" id="service-image" placeholder="https://example.com/image.jpg" required>
-          </div>
+          <div class="form-group"><label for="service-name">Name</label><input id="service-name" required></div>
+          <div class="form-group"><label for="service-price">Price</label><input id="service-price" required></div>
+          <div class="form-group"><label for="service-duration">Duration</label><input id="service-duration" required></div>
+          <div class="form-group"><label for="service-category">Category</label><input id="service-category"></div>
+          <div class="form-group"><label for="service-description">Description</label><textarea id="service-description" rows="3"></textarea></div>
+          <div class="form-group"><label for="service-image">Image URL</label><input id="service-image" placeholder="https://..." required></div>
           <div class="form-actions">
-            <button type="submit" class="btn primary-btn">Add Service</button>
-            <button type="button" class="btn secondary-btn" onclick="closeAddServiceForm()">Cancel</button>
+            <button type="submit" class="primary-btn">Add Service</button>
+            <button type="button" class="secondary-btn" id="cancel-add">Cancel</button>
           </div>
         </form>
       </div>
     </div>
   `;
-  
-  document.body.insertAdjacentHTML('beforeend', formHtml);
-  
-  // Handle form submission
+  document.getElementById('modal-root').innerHTML = modalHtml;
+  document.getElementById('cancel-add').addEventListener('click', closeAddServiceForm);
   document.getElementById('add-service-form').addEventListener('submit', handleAddService);
 }
 
 function closeAddServiceForm() {
-  const modal = document.getElementById('add-service-modal');
-  if (modal) modal.remove();
+  document.getElementById('modal-root').innerHTML = '';
 }
 
-async function handleAddService(event) {
-  event.preventDefault();
-  
-  const formData = new FormData(event.target);
-  const serviceData = {
-    name: document.getElementById('service-name').value,
-    price: document.getElementById('service-price').value,
-    duration: document.getElementById('service-duration').value,
-    image: document.getElementById('service-image').value
+async function handleAddService(e) {
+  e.preventDefault();
+  const data = {
+    name: document.getElementById('service-name').value.trim(),
+    price: document.getElementById('service-price').value.trim(),
+    duration: document.getElementById('service-duration').value.trim(),
+    category: document.getElementById('service-category').value.trim(),
+    description: document.getElementById('service-description').value.trim(),
+    image: document.getElementById('service-image').value.trim()
   };
-  
   try {
-    const newService = await createService(serviceData);
-    allServices.push(newService);
+    const created = await createService(data);
+    allServices.push(created);
     renderServices(allServices);
     closeAddServiceForm();
-    showNotification('Service added successfully!', 'success');
-  } catch (error) {
-    showNotification('Failed to add service. Please try again.', 'error');
+    showNotification('Service added', 'success');
+  } catch (err) {
+    console.error(err);
+    showNotification('Failed to add service', 'error');
   }
 }
 
-/* ===== Notification System ===== */
-function showNotification(message, type = 'info') {
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  notification.textContent = message;
-  
-  document.body.appendChild(notification);
-  
-  setTimeout(() => {
-    notification.classList.add('show');
-  }, 100);
-  
-  setTimeout(() => {
-    notification.classList.remove('show');
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
-}
-
-/* ===== Handle Edit & Delete with API ===== */
-document.getElementById('service-list').addEventListener('click', async (event) => {
-  const card = event.target.closest('.service-card');
-  if (!card || card.classList.contains('add-new-card')) return;
-
+/* ===== Delegated actions: edit / save / cancel / delete ===== */
+document.getElementById('service-list').addEventListener('click', async (e) => {
+  const card = e.target.closest('.service-card');
+  if (!card) return;
   const id = +card.dataset.id;
-  const button = event.target;
 
-  // Handle Delete
-  if (button.classList.contains('delete-btn')) {
-    if (confirm('Are you sure you want to delete this service?')) {
-      try {
-        await deleteService(id);
-        allServices = allServices.filter(service => service.id !== id);
-        renderServices(allServices);
-        showNotification('Service deleted successfully!', 'success');
-      } catch (error) {
-        showNotification('Failed to delete service. Please try again.', 'error');
-      }
+  // Delete
+  if (e.target.classList.contains('delete-btn')) {
+    if (!confirm('Delete this service?')) return;
+    try {
+      await deleteService(id);
+      allServices = allServices.filter(s => s.id !== id);
+      renderServices(allServices);
+      showNotification('Service deleted', 'success');
+    } catch (err) {
+      console.error(err);
+      showNotification('Delete failed', 'error');
     }
     return;
   }
 
-  // Handle Edit
-  if (button.classList.contains('edit-btn')) {
-    makeCardEditable(card);
+  // Edit - enter inline edit mode
+  if (e.target.classList.contains('edit-btn')) {
+    enterEditMode(card);
     return;
   }
 
-  // Handle Save
-  if (button.classList.contains('save-btn')) {
-    await saveServiceChanges(card, id);
+  // Save (instant save)
+  if (e.target.classList.contains('save-btn')) {
+    await handleSave(card, id);
     return;
   }
 
-  // Handle Cancel
-  if (button.classList.contains('cancel-btn')) {
+  // Cancel
+  if (e.target.classList.contains('cancel-btn')) {
     cancelEdit(card);
     return;
   }
 });
 
-/* ===== Edit Mode Functions ===== */
-function makeCardEditable(card) {
+/* ===== Edit helpers ===== */
+function enterEditMode(card) {
   const nameEl = card.querySelector('.service-name');
   const priceEl = card.querySelector('.service-price');
   const durationEl = card.querySelector('.service-duration');
-  
+  const categoryEl = card.querySelector('.service-category');
+  const descriptionEl = card.querySelector('.service-description');
+
   // Store original values
-  card.dataset.originalName = nameEl.textContent;
-  card.dataset.originalPrice = priceEl.innerHTML;
-  card.dataset.originalDuration = durationEl.innerHTML;
-  
-  // Make editable
-  nameEl.contentEditable = true;
-  nameEl.classList.add('editing');
-  
-  // Create input fields for price and duration
-  const priceInput = document.createElement('input');
-  priceInput.type = 'text';
-  priceInput.value = priceEl.textContent.replace('Price: ', '');
-  priceInput.className = 'edit-input';
-  
-  const durationInput = document.createElement('input');
-  durationInput.type = 'text';
-  durationInput.value = durationEl.textContent.replace('Duration: ', '');
-  durationInput.className = 'edit-input';
-  
-  priceEl.innerHTML = '<strong>Price:</strong> ';
-  priceEl.appendChild(priceInput);
-  
-  durationEl.innerHTML = '<strong>Duration:</strong> ';
-  durationEl.appendChild(durationInput);
-  
-  // Toggle buttons
+  card.dataset.origName = nameEl.textContent;
+  card.dataset.origPrice = priceEl.textContent.replace('Price:','').trim();
+  card.dataset.origDuration = durationEl.textContent.replace('Duration:','').trim();
+  card.dataset.origCategory = categoryEl.textContent.replace('Category:','').trim();
+  card.dataset.origDescription = descriptionEl.textContent;
+
+  // Replace with inputs
+  nameEl.innerHTML = `<input class="edit-field" value="${escapeAttr(card.dataset.origName)}">`;
+  priceEl.innerHTML = `<strong>Price:</strong> <input class="edit-field" value="${escapeAttr(card.dataset.origPrice)}">`;
+  durationEl.innerHTML = `<strong>Duration:</strong> <input class="edit-field" value="${escapeAttr(card.dataset.origDuration)}">`;
+  categoryEl.innerHTML = `<strong>Category:</strong> <input class="edit-field" value="${escapeAttr(card.dataset.origCategory)}">`;
+  descriptionEl.innerHTML = `<textarea class="edit-field">${escapeAttr(card.dataset.origDescription)}</textarea>`;
+
+  // Show Save/Cancel, hide Edit
   card.querySelector('.edit-btn').style.display = 'none';
   card.querySelector('.save-btn').style.display = 'inline-block';
   card.querySelector('.cancel-btn').style.display = 'inline-block';
 }
 
-async function saveServiceChanges(card, id) {
-  const nameEl = card.querySelector('.service-name');
-  const priceInput = card.querySelector('.service-price input');
-  const durationInput = card.querySelector('.service-duration input');
-  
-  const updatedData = {
-    name: nameEl.textContent.trim(),
-    price: priceInput.value.trim(),
-    duration: durationInput.value.trim()
+function escapeAttr(s = '') {
+  return String(s).replace(/"/g, '&quot;');
+}
+
+async function handleSave(card, id) {
+  const nameVal = card.querySelector('.service-name .edit-field').value.trim();
+  const priceVal = card.querySelector('.service-price .edit-field').value.trim();
+  const durationVal = card.querySelector('.service-duration .edit-field').value.trim();
+  const categoryVal = card.querySelector('.service-category .edit-field').value.trim();
+  const descriptionVal = card.querySelector('.service-description .edit-field').value.trim();
+
+  const payload = {
+    name: nameVal,
+    price: priceVal,
+    duration: durationVal,
+    category: categoryVal,
+    description: descriptionVal
   };
-  
+
   try {
-    const updatedService = await updateService(id, updatedData);
-    
-    // Update local data
-    const serviceIndex = allServices.findIndex(s => s.id === id);
-    if (serviceIndex !== -1) {
-      allServices[serviceIndex] = { ...allServices[serviceIndex], ...updatedService };
-    }
-    
-    // Re-render to reset the card
+    const updated = await updateService(id, payload);
+    // update local state
+    const idx = allServices.findIndex(s => s.id === id);
+    if (idx !== -1) allServices[idx] = { ...allServices[idx], ...updated };
     renderServices(allServices);
-    showNotification('Service updated successfully!', 'success');
-  } catch (error) {
-    showNotification('Failed to update service. Please try again.', 'error');
+    showNotification('Service updated', 'success');
+  } catch (err) {
+    console.error(err);
+    showNotification('Update failed', 'error');
     cancelEdit(card);
   }
 }
 
 function cancelEdit(card) {
-  // Restore original values and re-render
-  loadServices();
+  // revert by re-rendering from local state
+  renderServices(allServices);
 }
 
-/* ===== Dark Mode Toggle with localStorage ===== */
-function setupDarkMode() {
-  const toggleButton = document.getElementById('dark-toggle');
-  
-  // Load saved theme preference or default to light mode
-  const savedTheme = localStorage.getItem('theme') || 'light';
-  
-  // Apply the saved theme on page load
-  if (savedTheme === 'dark') {
-    document.body.classList.add('dark-mode');
-    if (toggleButton) {
-      toggleButton.textContent = '☀️ Light Mode';
-    }
-  } else {
-    document.body.classList.remove('dark-mode');
-    if (toggleButton) {
-      toggleButton.textContent = '🌙 Dark Mode';
-    }
-  }
-  
-  // Add click event listener for theme toggle
-  if (toggleButton) {
-    toggleButton.addEventListener('click', () => {
-      const isDarkMode = document.body.classList.contains('dark-mode');
-      
-      if (isDarkMode) {
-        // Switch to light mode
-        document.body.classList.remove('dark-mode');
-        localStorage.setItem('theme', 'light');
-        toggleButton.textContent = '🌙 Dark Mode';
-        console.log('Switched to Light Mode');
-      } else {
-        // Switch to dark mode
-        document.body.classList.add('dark-mode');
-        localStorage.setItem('theme', 'dark');
-        toggleButton.textContent = '☀️ Light Mode';
-        console.log('Switched to Dark Mode');
-      }
-    });
-  }
-}
-
-/* ===== Get Current Theme ===== */
-function getCurrentTheme() {
-  return localStorage.getItem('theme') || 'light';
-}
-
-/* ===== Set Theme Programmatically ===== */
-function setTheme(theme) {
-  const toggleButton = document.getElementById('dark-toggle');
-  
-  if (theme === 'dark') {
-    document.body.classList.add('dark-mode');
-    localStorage.setItem('theme', 'dark');
-    if (toggleButton) {
-      toggleButton.textContent = '☀️ Light Mode';
-    }
-  } else {
-    document.body.classList.remove('dark-mode');
-    localStorage.setItem('theme', 'light');
-    if (toggleButton) {
-      toggleButton.textContent = '🌙 Dark Mode';
-    }
-  }
-}
-
-/* ===== Live Search Filter ===== */
+/* ===== Search ===== */
 function setupSearchFilter() {
-  document.getElementById('search-input')
-    .addEventListener('input', e => {
-      const term = e.target.value.toLowerCase();
-      const filtered = allServices.filter(service =>
-        service.name.toLowerCase().includes(term)
-      );
-      renderServices(filtered);
-    });
+  const input = document.getElementById('search-input');
+  if (!input) return;
+  input.addEventListener('input', e => {
+    const term = e.target.value.trim().toLowerCase();
+    const filtered = allServices.filter(s =>
+      s.name.toLowerCase().includes(term) || (s.category || '').toLowerCase().includes(term)
+    );
+    renderServices(filtered);
+  });
 }
 
-/* ===== Falling Leaf Animation ===== */
+/* ===== Dark mode (persist) ===== */
+function setupDarkMode() {
+  const btn = document.getElementById('dark-toggle');
+  const saved = localStorage.getItem('theme') || 'light';
+  if (saved === 'dark') {
+    document.body.classList.add('dark-mode');
+    if (btn) btn.textContent = '☀️ Light Mode';
+  } else if (btn) {
+    btn.textContent = '🌙 Dark Mode';
+  }
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    btn.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+  });
+}
+
+/* ===== Leaves animation ===== */
 function createFallingLeaves() {
-  const container = document.getElementById('leaves');
+  const box = document.getElementById('leaves');
   for (let i = 0; i < 15; i++) {
     const leaf = document.createElement('div');
     leaf.className = 'leaf';
     leaf.style.left = `${Math.random() * 100}vw`;
-    leaf.style.animationDuration = `${4 + Math.random() * 5}s`;
+    leaf.style.animationDuration = `${4 + Math.random() * 6}s`;
     leaf.style.animationDelay = `${Math.random() * 5}s`;
-    container.appendChild(leaf);
+    box.appendChild(leaf);
   }
-};  /* <-- closing brace + semicolon added */
+}
