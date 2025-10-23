@@ -1,6 +1,6 @@
 /* ===== Config ===== */
-const API_BASE = 'https://personal-website-del6.onrender.com'; // your Render domain (no trailing slash)
-const SERVICES_ENDPOINT = `${API_BASE}/services`;
+const API_BASE_URL = "https://personal-website-del6.onrender.com"; // your Render domain (no trailing slash)
+const SERVICES_ENDPOINT = `${API_BASE_URL}/services`;
 
 /* ===== State ===== */
 let allServices = [];
@@ -13,6 +13,7 @@ function escapeHtml(str = '') {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
+function escapeAttr(s = '') { return String(s).replace(/"/g, '&quot;'); }
 
 function showNotification(msg, type = 'info') {
   const n = document.createElement('div');
@@ -32,7 +33,6 @@ async function fetchServices() {
   if (!res.ok) throw new Error('Failed to fetch services');
   return res.json();
 }
-
 async function createService(data) {
   const res = await fetch(SERVICES_ENDPOINT, {
     method: 'POST',
@@ -42,7 +42,6 @@ async function createService(data) {
   if (!res.ok) throw new Error('Failed to create service');
   return res.json();
 }
-
 async function updateService(id, data) {
   const res = await fetch(`${SERVICES_ENDPOINT}/${id}`, {
     method: 'PATCH',
@@ -52,7 +51,6 @@ async function updateService(id, data) {
   if (!res.ok) throw new Error('Failed to update service');
   return res.json();
 }
-
 async function deleteService(id) {
   const res = await fetch(`${SERVICES_ENDPOINT}/${id}`, { method: 'DELETE' });
   if (!res.ok) throw new Error('Failed to delete service');
@@ -72,7 +70,8 @@ async function loadServices() {
   try {
     const data = await fetchServices();
     allServices = data;
-    document.getElementById('loading-text').style.display = 'none';
+    const lt = document.getElementById('loading-text');
+    if (lt) lt.style.display = 'none';
     renderServices(allServices);
   } catch (err) {
     console.error('API failed:', err);
@@ -81,22 +80,24 @@ async function loadServices() {
       const fallback = await fetch('./db.json');
       const json = await fallback.json();
       allServices = json.services || [];
-      document.getElementById('loading-text').style.display = 'none';
+      const lt = document.getElementById('loading-text');
+      if (lt) lt.style.display = 'none';
       renderServices(allServices);
       showNotification('Loaded local data (offline)', 'info');
     } catch (e) {
-      document.getElementById('loading-text').textContent = 'Failed to load services.';
+      const lt = document.getElementById('loading-text');
+      if (lt) lt.textContent = 'Failed to load services.';
       showNotification('Unable to load services', 'error');
     }
   }
 }
 
-/* ===== Render services (with Add card) ===== */
+/* ===== Render services ===== */
 function renderServices(list) {
   const container = document.getElementById('service-list');
   container.innerHTML = '';
 
-  // Add New card
+  // Add new card (first)
   const addCard = document.createElement('div');
   addCard.className = 'service-card add-new-card';
   addCard.innerHTML = `
@@ -114,7 +115,7 @@ function renderServices(list) {
     card.className = 'service-card';
     card.dataset.id = svc.id;
     card.innerHTML = `
-      <img src="${escapeHtml(svc.image)}" alt="${escapeHtml(svc.name)}" class="service-img" />
+      <img src="${escapeAttr(svc.image)}" alt="${escapeAttr(svc.name)}" class="service-img" />
       <h3 class="service-name">${escapeHtml(svc.name)}</h3>
       <p class="service-price"><strong>Price:</strong> ${escapeHtml(svc.price)}</p>
       <p class="service-duration"><strong>Duration:</strong> ${escapeHtml(svc.duration)}</p>
@@ -183,7 +184,7 @@ async function handleAddService(e) {
   }
 }
 
-/* ===== Delegated actions: edit / save / cancel / delete ===== */
+/* ===== Delegated actions ===== */
 document.getElementById('service-list').addEventListener('click', async (e) => {
   const card = e.target.closest('.service-card');
   if (!card) return;
@@ -204,7 +205,7 @@ document.getElementById('service-list').addEventListener('click', async (e) => {
     return;
   }
 
-  // Edit - enter inline edit mode
+  // Edit - inline
   if (e.target.classList.contains('edit-btn')) {
     enterEditMode(card);
     return;
@@ -223,7 +224,7 @@ document.getElementById('service-list').addEventListener('click', async (e) => {
   }
 });
 
-/* ===== Edit helpers ===== */
+/* ===== Edit helpers (inline editing) ===== */
 function enterEditMode(card) {
   const nameEl = card.querySelector('.service-name');
   const priceEl = card.querySelector('.service-price');
@@ -231,28 +232,24 @@ function enterEditMode(card) {
   const categoryEl = card.querySelector('.service-category');
   const descriptionEl = card.querySelector('.service-description');
 
-  // Store original values
+  // store originals
   card.dataset.origName = nameEl.textContent;
-  card.dataset.origPrice = priceEl.textContent.replace('Price:','').trim();
-  card.dataset.origDuration = durationEl.textContent.replace('Duration:','').trim();
-  card.dataset.origCategory = categoryEl.textContent.replace('Category:','').trim();
+  card.dataset.origPrice = priceEl.textContent.replace('Price:', '').trim();
+  card.dataset.origDuration = durationEl.textContent.replace('Duration:', '').trim();
+  card.dataset.origCategory = categoryEl.textContent.replace('Category:', '').trim();
   card.dataset.origDescription = descriptionEl.textContent;
 
-  // Replace with inputs
+  // replace with inputs
   nameEl.innerHTML = `<input class="edit-field" value="${escapeAttr(card.dataset.origName)}">`;
   priceEl.innerHTML = `<strong>Price:</strong> <input class="edit-field" value="${escapeAttr(card.dataset.origPrice)}">`;
   durationEl.innerHTML = `<strong>Duration:</strong> <input class="edit-field" value="${escapeAttr(card.dataset.origDuration)}">`;
   categoryEl.innerHTML = `<strong>Category:</strong> <input class="edit-field" value="${escapeAttr(card.dataset.origCategory)}">`;
   descriptionEl.innerHTML = `<textarea class="edit-field">${escapeAttr(card.dataset.origDescription)}</textarea>`;
 
-  // Show Save/Cancel, hide Edit
+  // toggle buttons
   card.querySelector('.edit-btn').style.display = 'none';
   card.querySelector('.save-btn').style.display = 'inline-block';
   card.querySelector('.cancel-btn').style.display = 'inline-block';
-}
-
-function escapeAttr(s = '') {
-  return String(s).replace(/"/g, '&quot;');
 }
 
 async function handleSave(card, id) {
@@ -262,17 +259,10 @@ async function handleSave(card, id) {
   const categoryVal = card.querySelector('.service-category .edit-field').value.trim();
   const descriptionVal = card.querySelector('.service-description .edit-field').value.trim();
 
-  const payload = {
-    name: nameVal,
-    price: priceVal,
-    duration: durationVal,
-    category: categoryVal,
-    description: descriptionVal
-  };
+  const payload = { name: nameVal, price: priceVal, duration: durationVal, category: categoryVal, description: descriptionVal };
 
   try {
     const updated = await updateService(id, payload);
-    // update local state
     const idx = allServices.findIndex(s => s.id === id);
     if (idx !== -1) allServices[idx] = { ...allServices[idx], ...updated };
     renderServices(allServices);
@@ -285,7 +275,6 @@ async function handleSave(card, id) {
 }
 
 function cancelEdit(card) {
-  // revert by re-rendering from local state
   renderServices(allServices);
 }
 

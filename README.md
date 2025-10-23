@@ -1,19 +1,45 @@
 # Shee Parlour — Frontend (Glassmorphism)
 
-Frontend (GitHub Pages) + Backend (Render JSON Server).
+Soft White Glass UI + dark mode, search, add/edit/delete services (instant save to Render JSON Server).
 
-## Live (example)
-- Frontend: https://sylviawahome.github.io/personal-website/
-- Backend: https://personal-website-del6.onrender.com/services
+## Live
+- Frontend (GitHub Pages): https://sylviawahome.github.io/personal-website/
+- Backend (Render): https://personal-website-del6.onrender.com/services
 
-## Features
-- Soft White Glass UI (glassmorphism)
-- Live search, dark mode, falling leaves
-- Add / Edit / Delete services (instant save to Render)
-- Responsive and accessible basics
+## Files (frontend)
+- `index.html`
+- `style.css`
+- `index.js`
+- `/images/` — place your images here (logo.jpg, herbal-facial.jpg, natural-hair-treatment.jpg, aloe-vera-massage.jpg, clay-mask-detox.jpg, floral-pedicure.jpg, leaf.png)
 
-## Local Dev
-1. Clone frontend:
-   ```bash
-   git clone https://github.com/SylviaWahome/personal-website.git
-   cd personal-website
+## Local testing (optional)
+1. Frontend
+   - Clone repo and open `index.html` in browser or run Live Server.
+
+2. Backend (local)
+   - Clone backend repo `shee-parlour-api`
+   - `npm install`
+   - `npm start`  (server.js uses process.env.PORT or 10000)
+   - API endpoints:
+     - GET  /services
+     - POST /services
+     - PATCH /services/:id
+     - DELETE /services/:id
+
+## Deploy
+**Backend (Render)**:
+1. Push `db.json`, `server.js`, `package.json` to backend GitHub repo.
+2. Create a Render **Web Service** (Node).
+   - Build: default
+   - Start command: `npm start`
+3. After deploy, note Render URL and ensure `index.js` API_BASE_URL matches `https://<your-render-domain>.onrender.com`
+
+**Frontend (GitHub Pages)**:
+1. Push `index.html`, `style.css`, `index.js`, `/images` to frontend GitHub repo (main branch).
+2. In repo Settings → Pages → choose branch `main` & root folder.
+3. Access site at `https://<your-username>.github.io/<repo>/`
+
+## Notes
+- Edits/adds/deletes are persisted to Render's JSON Server.
+- If Render is down, frontend falls back to `db.json` (local) if present.
+- To change glass look quickly, edit the token block at the top of `style.css`.
