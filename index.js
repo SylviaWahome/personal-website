@@ -1,5 +1,5 @@
 /* ===== Configuration ===== */
-const API_BASE_URL = "https://personal-website-1-l6g4.onrender.com"; // <- update if different
+const API_BASE_URL = "https://shee-parlour-api.onrender.com"; // your Render backend
 const SERVICES_ENDPOINT = `${API_BASE_URL}/services`;
 
 /* ===== State ===== */
@@ -141,7 +141,7 @@ function showAddServiceForm() {
           <label>Service Name<input id="svc-name" required></label>
           <label>Price<input id="svc-price" required></label>
           <label>Duration<input id="svc-duration" required></label>
-          <label>Image URL<input id="svc-image" placeholder="./images/my.jpg" required></label>
+          <label>Image URL<input id="svc-image" placeholder="https://example.com/image.jpg" required></label>
           <div class="form-actions"><button class="primary-btn" type="submit">Add</button> <button type="button" id="add-cancel" class="secondary-btn">Cancel</button></div>
         </form>
       </div>
