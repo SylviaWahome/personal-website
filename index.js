@@ -1,5 +1,5 @@
-/* ===== Config ===== */
-const API_BASE_URL = "https://personal-website-del6.onrender.com"; // your Render domain (no trailing slash)
+/* ===== Configuration ===== */
+const API_BASE_URL = "https://personal-website-1-l6g4.onrender.com"; // <- update if different
 const SERVICES_ENDPOINT = `${API_BASE_URL}/services`;
 
 /* ===== State ===== */
@@ -13,7 +13,6 @@ function escapeHtml(str = '') {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
-function escapeAttr(s = '') { return String(s).replace(/"/g, '&quot;'); }
 
 function showNotification(msg, type = 'info') {
   const n = document.createElement('div');
@@ -27,13 +26,13 @@ function showNotification(msg, type = 'info') {
   }, 3000);
 }
 
-/* ===== API actions ===== */
-async function fetchServices() {
+/* ===== API helpers ===== */
+async function apiGetServices() {
   const res = await fetch(SERVICES_ENDPOINT);
   if (!res.ok) throw new Error('Failed to fetch services');
   return res.json();
 }
-async function createService(data) {
+async function apiCreateService(data) {
   const res = await fetch(SERVICES_ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -42,7 +41,7 @@ async function createService(data) {
   if (!res.ok) throw new Error('Failed to create service');
   return res.json();
 }
-async function updateService(id, data) {
+async function apiUpdateService(id, data) {
   const res = await fetch(`${SERVICES_ENDPOINT}/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -51,7 +50,7 @@ async function updateService(id, data) {
   if (!res.ok) throw new Error('Failed to update service');
   return res.json();
 }
-async function deleteService(id) {
+async function apiDeleteService(id) {
   const res = await fetch(`${SERVICES_ENDPOINT}/${id}`, { method: 'DELETE' });
   if (!res.ok) throw new Error('Failed to delete service');
   return true;
@@ -62,52 +61,54 @@ document.addEventListener('DOMContentLoaded', () => {
   createFallingLeaves();
   setupDarkMode();
   setupSearchFilter();
+  setupBookingForm();
+  setupGalleryLightbox();
   loadServices();
 });
 
-/* ===== Load ===== */
+/* ===== Load services (try API, fallback to local db.json) ===== */
 async function loadServices() {
   try {
-    const data = await fetchServices();
+    const data = await apiGetServices();
     allServices = data;
     const lt = document.getElementById('loading-text');
     if (lt) lt.style.display = 'none';
     renderServices(allServices);
+    populateBookingServiceOptions(allServices);
   } catch (err) {
     console.error('API failed:', err);
-    // fallback to local db.json
     try {
-      const fallback = await fetch('./db.json');
-      const json = await fallback.json();
+      const resp = await fetch('./db.json');
+      const json = await resp.json();
       allServices = json.services || [];
       const lt = document.getElementById('loading-text');
       if (lt) lt.style.display = 'none';
       renderServices(allServices);
+      populateBookingServiceOptions(allServices);
       showNotification('Loaded local data (offline)', 'info');
     } catch (e) {
-      const lt = document.getElementById('loading-text');
-      if (lt) lt.textContent = 'Failed to load services.';
+      document.getElementById('loading-text').textContent = 'Failed to load services.';
       showNotification('Unable to load services', 'error');
     }
   }
 }
 
-/* ===== Render services ===== */
+/* ===== Render service cards ===== */
 function renderServices(list) {
   const container = document.getElementById('service-list');
   container.innerHTML = '';
 
-  // Add new card (first)
+  // Add new (admin) card
   const addCard = document.createElement('div');
   addCard.className = 'service-card add-new-card';
   addCard.innerHTML = `
     <div class="add-new-content">
       <div class="add-icon">+</div>
       <h3>Add New Service</h3>
-      <p>Click to add a new service</p>
+      <p class="muted">Click to add a new service (admin)</p>
     </div>
   `;
-  addCard.addEventListener('click', showAddServiceForm);
+  addCard.addEventListener('click', () => showAddServiceForm());
   container.appendChild(addCard);
 
   list.forEach(svc => {
@@ -115,12 +116,10 @@ function renderServices(list) {
     card.className = 'service-card';
     card.dataset.id = svc.id;
     card.innerHTML = `
-      <img src="${escapeAttr(svc.image)}" alt="${escapeAttr(svc.name)}" class="service-img" />
+      <img src="${escapeHtml(svc.image)}" alt="${escapeHtml(svc.name)}" class="service-img" />
       <h3 class="service-name">${escapeHtml(svc.name)}</h3>
       <p class="service-price"><strong>Price:</strong> ${escapeHtml(svc.price)}</p>
       <p class="service-duration"><strong>Duration:</strong> ${escapeHtml(svc.duration)}</p>
-      <p class="service-category"><strong>Category:</strong> ${escapeHtml(svc.category || '')}</p>
-      <p class="service-description">${escapeHtml(svc.description || '')}</p>
       <div class="card-actions">
         <button class="btn edit-btn" data-id="${svc.id}">Edit</button>
         <button class="btn save-btn" data-id="${svc.id}" style="display:none">Save</button>
@@ -132,51 +131,42 @@ function renderServices(list) {
   });
 }
 
-/* ===== Add service modal ===== */
+/* ===== Add service modal (admin) ===== */
 function showAddServiceForm() {
-  const modalHtml = `
+  const html = `
     <div class="modal-overlay" id="add-service-modal">
-      <div class="modal-content" role="dialog" aria-modal="true">
-        <h2>Add New Service</h2>
+      <div class="modal-content">
+        <h2>Add Service</h2>
         <form id="add-service-form">
-          <div class="form-group"><label for="service-name">Name</label><input id="service-name" required></div>
-          <div class="form-group"><label for="service-price">Price</label><input id="service-price" required></div>
-          <div class="form-group"><label for="service-duration">Duration</label><input id="service-duration" required></div>
-          <div class="form-group"><label for="service-category">Category</label><input id="service-category"></div>
-          <div class="form-group"><label for="service-description">Description</label><textarea id="service-description" rows="3"></textarea></div>
-          <div class="form-group"><label for="service-image">Image URL</label><input id="service-image" placeholder="https://..." required></div>
-          <div class="form-actions">
-            <button type="submit" class="primary-btn">Add Service</button>
-            <button type="button" class="secondary-btn" id="cancel-add">Cancel</button>
-          </div>
+          <label>Service Name<input id="svc-name" required></label>
+          <label>Price<input id="svc-price" required></label>
+          <label>Duration<input id="svc-duration" required></label>
+          <label>Image URL<input id="svc-image" placeholder="./images/my.jpg" required></label>
+          <div class="form-actions"><button class="primary-btn" type="submit">Add</button> <button type="button" id="add-cancel" class="secondary-btn">Cancel</button></div>
         </form>
       </div>
     </div>
   `;
-  document.getElementById('modal-root').innerHTML = modalHtml;
-  document.getElementById('cancel-add').addEventListener('click', closeAddServiceForm);
+  document.getElementById('modal-root').innerHTML = html;
+  document.getElementById('add-cancel').addEventListener('click', closeAddModal);
   document.getElementById('add-service-form').addEventListener('submit', handleAddService);
 }
-
-function closeAddServiceForm() {
-  document.getElementById('modal-root').innerHTML = '';
-}
+function closeAddModal() { document.getElementById('modal-root').innerHTML = ''; }
 
 async function handleAddService(e) {
   e.preventDefault();
   const data = {
-    name: document.getElementById('service-name').value.trim(),
-    price: document.getElementById('service-price').value.trim(),
-    duration: document.getElementById('service-duration').value.trim(),
-    category: document.getElementById('service-category').value.trim(),
-    description: document.getElementById('service-description').value.trim(),
-    image: document.getElementById('service-image').value.trim()
+    name: document.getElementById('svc-name').value.trim(),
+    price: document.getElementById('svc-price').value.trim(),
+    duration: document.getElementById('svc-duration').value.trim(),
+    image: document.getElementById('svc-image').value.trim()
   };
   try {
-    const created = await createService(data);
-    allServices.push(created);
+    const created = await apiCreateService(data);
+    allServices.unshift(created);
     renderServices(allServices);
-    closeAddServiceForm();
+    populateBookingServiceOptions(allServices);
+    closeAddModal();
     showNotification('Service added', 'success');
   } catch (err) {
     console.error(err);
@@ -184,7 +174,7 @@ async function handleAddService(e) {
   }
 }
 
-/* ===== Delegated actions ===== */
+/* ===== Edit/Delete via delegation ===== */
 document.getElementById('service-list').addEventListener('click', async (e) => {
   const card = e.target.closest('.service-card');
   if (!card) return;
@@ -194,10 +184,11 @@ document.getElementById('service-list').addEventListener('click', async (e) => {
   if (e.target.classList.contains('delete-btn')) {
     if (!confirm('Delete this service?')) return;
     try {
-      await deleteService(id);
+      await apiDeleteService(id);
       allServices = allServices.filter(s => s.id !== id);
       renderServices(allServices);
-      showNotification('Service deleted', 'success');
+      populateBookingServiceOptions(allServices);
+      showNotification('Deleted', 'success');
     } catch (err) {
       console.error(err);
       showNotification('Delete failed', 'error');
@@ -205,93 +196,110 @@ document.getElementById('service-list').addEventListener('click', async (e) => {
     return;
   }
 
-  // Edit - inline
+  // Edit: convert fields to inputs
   if (e.target.classList.contains('edit-btn')) {
     enterEditMode(card);
     return;
   }
 
-  // Save (instant save)
+  // Save
   if (e.target.classList.contains('save-btn')) {
-    await handleSave(card, id);
+    await saveEdits(card, id);
     return;
   }
 
   // Cancel
   if (e.target.classList.contains('cancel-btn')) {
-    cancelEdit(card);
+    renderServices(allServices);
     return;
   }
 });
 
-/* ===== Edit helpers (inline editing) ===== */
 function enterEditMode(card) {
   const nameEl = card.querySelector('.service-name');
   const priceEl = card.querySelector('.service-price');
   const durationEl = card.querySelector('.service-duration');
-  const categoryEl = card.querySelector('.service-category');
-  const descriptionEl = card.querySelector('.service-description');
 
-  // store originals
   card.dataset.origName = nameEl.textContent;
   card.dataset.origPrice = priceEl.textContent.replace('Price:', '').trim();
   card.dataset.origDuration = durationEl.textContent.replace('Duration:', '').trim();
-  card.dataset.origCategory = categoryEl.textContent.replace('Category:', '').trim();
-  card.dataset.origDescription = descriptionEl.textContent;
 
-  // replace with inputs
-  nameEl.innerHTML = `<input class="edit-field" value="${escapeAttr(card.dataset.origName)}">`;
-  priceEl.innerHTML = `<strong>Price:</strong> <input class="edit-field" value="${escapeAttr(card.dataset.origPrice)}">`;
-  durationEl.innerHTML = `<strong>Duration:</strong> <input class="edit-field" value="${escapeAttr(card.dataset.origDuration)}">`;
-  categoryEl.innerHTML = `<strong>Category:</strong> <input class="edit-field" value="${escapeAttr(card.dataset.origCategory)}">`;
-  descriptionEl.innerHTML = `<textarea class="edit-field">${escapeAttr(card.dataset.origDescription)}</textarea>`;
+  nameEl.innerHTML = `<input class="edit-field" value="${escapeHtml(card.dataset.origName)}">`;
+  priceEl.innerHTML = `<strong>Price:</strong> <input class="edit-field" value="${escapeHtml(card.dataset.origPrice)}">`;
+  durationEl.innerHTML = `<strong>Duration:</strong> <input class="edit-field" value="${escapeHtml(card.dataset.origDuration)}">`;
 
-  // toggle buttons
   card.querySelector('.edit-btn').style.display = 'none';
   card.querySelector('.save-btn').style.display = 'inline-block';
   card.querySelector('.cancel-btn').style.display = 'inline-block';
 }
 
-async function handleSave(card, id) {
+async function saveEdits(card, id) {
   const nameVal = card.querySelector('.service-name .edit-field').value.trim();
   const priceVal = card.querySelector('.service-price .edit-field').value.trim();
-  const durationVal = card.querySelector('.service-duration .edit-field').value.trim();
-  const categoryVal = card.querySelector('.service-category .edit-field').value.trim();
-  const descriptionVal = card.querySelector('.service-description .edit-field').value.trim();
-
-  const payload = { name: nameVal, price: priceVal, duration: durationVal, category: categoryVal, description: descriptionVal };
+  const durVal = card.querySelector('.service-duration .edit-field').value.trim();
 
   try {
-    const updated = await updateService(id, payload);
+    const updated = await apiUpdateService(id, { name: nameVal, price: priceVal, duration: durVal });
     const idx = allServices.findIndex(s => s.id === id);
     if (idx !== -1) allServices[idx] = { ...allServices[idx], ...updated };
     renderServices(allServices);
-    showNotification('Service updated', 'success');
+    showNotification('Updated', 'success');
   } catch (err) {
     console.error(err);
     showNotification('Update failed', 'error');
-    cancelEdit(card);
   }
 }
 
-function cancelEdit(card) {
-  renderServices(allServices);
-}
-
-/* ===== Search ===== */
+/* ===== Search filter ===== */
 function setupSearchFilter() {
   const input = document.getElementById('search-input');
   if (!input) return;
-  input.addEventListener('input', e => {
+  input.addEventListener('input', (e) => {
     const term = e.target.value.trim().toLowerCase();
-    const filtered = allServices.filter(s =>
-      s.name.toLowerCase().includes(term) || (s.category || '').toLowerCase().includes(term)
-    );
+    const filtered = allServices.filter(svc => svc.name.toLowerCase().includes(term));
     renderServices(filtered);
   });
 }
 
-/* ===== Dark mode (persist) ===== */
+/* ===== Booking (client-only) ===== */
+function populateBookingServiceOptions(list) {
+  const sel = document.getElementById('bk-service');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Choose a service</option>';
+  list.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.name;
+    opt.textContent = s.name;
+    sel.appendChild(opt);
+  });
+}
+function setupBookingForm() {
+  const form = document.getElementById('booking-form');
+  if (!form) return;
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = document.getElementById('bk-name').value.trim();
+    const phone = document.getElementById('bk-phone').value.trim();
+    const email = document.getElementById('bk-email').value.trim();
+    const service = document.getElementById('bk-service').value;
+    const date = document.getElementById('bk-date').value;
+    const time = document.getElementById('bk-time').value;
+    if (!name || !phone || !service) {
+      document.getElementById('booking-msg').textContent = 'Please fill name, phone and choose a service.';
+      return;
+    }
+    // Save booking in localStorage (simple demo)
+    const bookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+    bookings.unshift({ name, phone, email, service, date, time, created: new Date().toISOString() });
+    localStorage.setItem('bookings', JSON.stringify(bookings));
+    document.getElementById('booking-msg').textContent = 'Booking request received — we will contact you soon.';
+    form.reset();
+    setTimeout(() => document.getElementById('booking-msg').textContent = '', 4000);
+  });
+  document.getElementById('booking-clear').addEventListener('click', () => form.reset());
+}
+
+/* ===== Dark mode persisted ===== */
 function setupDarkMode() {
   const btn = document.getElementById('dark-toggle');
   const saved = localStorage.getItem('theme') || 'light';
@@ -312,12 +320,28 @@ function setupDarkMode() {
 /* ===== Leaves animation ===== */
 function createFallingLeaves() {
   const box = document.getElementById('leaves');
-  for (let i = 0; i < 15; i++) {
+  for (let i = 0; i < 12; i++) {
     const leaf = document.createElement('div');
     leaf.className = 'leaf';
     leaf.style.left = `${Math.random() * 100}vw`;
-    leaf.style.animationDuration = `${4 + Math.random() * 6}s`;
-    leaf.style.animationDelay = `${Math.random() * 5}s`;
+    leaf.style.animationDuration = `${5 + Math.random() * 6}s`;
+    leaf.style.animationDelay = `${Math.random() * 6}s`;
     box.appendChild(leaf);
   }
+}
+
+/* ===== Gallery lightbox (simple) ===== */
+function setupGalleryLightbox() {
+  const grid = document.getElementById('gallery-grid');
+  if (!grid) return;
+  grid.addEventListener('click', (e) => {
+    const img = e.target.closest('img');
+    if (!img) return;
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `<div class="modal-content"><img src="${img.src}" style="max-width:100%;border-radius:8px" alt="${img.alt}"><div style="margin-top:8px;text-align:right"><button id="close-lightbox" class="secondary-btn">Close</button></div></div>`;
+    document.body.appendChild(overlay);
+    document.getElementById('close-lightbox').addEventListener('click', () => overlay.remove());
+    overlay.addEventListener('click', (ev) => { if (ev.target === overlay) overlay.remove(); });
+  });
 }

@@ -1,44 +1,35 @@
-# Shee Parlour — Frontend (Glassmorphism)
+# Shee Parlour — Frontend (One-page HTML/CSS/JS)
 
-Soft White Glass UI + dark mode, search, add/edit/delete services (instant save to Render JSON Server).
+Soft White Glass UI + dark mode, falling leaves, live services fetched from Render JSON Server.
 
-## Live
-- Frontend (GitHub Pages): https://sylviawahome.github.io/personal-website/
-- Backend (Render): https://personal-website-del6.onrender.com/services
+## Live (example)
+- Backend (Render): https://personal-website-1-l6g4.onrender.com/services
 
-## Files (frontend)
+## Files
 - `index.html`
 - `style.css`
 - `index.js`
-- `/images/` — add these images: `logo.jpg`, `herbal-facial.jpg`, `natural-hair-treatment.jpg`, `aloe-vera-massage.jpg`, `clay-mask-detox.jpg`, `floral-pedicure.jpg`, `leaf.png`
+- `db.json` (seed / fallback)
+- `/images/` — put image files here:
+  - `logo.jpg`
+  - `hero-nature.jpg`
+  - `herbal-facial.jpg`
+  - `natural-hair-treatment.jpg`
+  - `aloe-vera-massage.jpg`
+  - `clay-mask-detox.jpg`
+  - `floral-pedicure.jpg`
+  - `leaf.png`
 
-## Local testing (optional)
-1. Frontend
-   - Clone repo and open `index.html` in browser or run Live Server.
+## How it works
+- Frontend fetches services from `https://personal-website-1-l6g4.onrender.com/services`.
+- If API fails, it falls back to `db.json` (local).
+- Add / Edit / Delete attempts to persist to the API (json-server). If your API is running on Render with json-server, changes will persist.
+- Booking form stores requests locally (localStorage) as demo.
 
-2. Backend (local)
-   - Clone backend repo `shee-parlour-api`
-   - `npm install`
-   - `npm start`  (server.js uses process.env.PORT or 10000)
-   - API endpoints:
-     - GET  /services
-     - POST /services
-     - PATCH /services/:id
-     - DELETE /services/:id
-
-## Deploy
-**Backend (Render)**:
-1. Push `db.json`, `server.js`, `package.json` to backend GitHub repo.
-2. Create a Render **Web Service** (Node).
-   - Start command: `npm start`
-3. After deploy, note Render URL and ensure `index.js` API_BASE_URL matches `https://personal-website-del6.onrender.com`
-
-**Frontend (GitHub Pages)**:
-1. Push `index.html`, `style.css`, `index.js`, `/images` to frontend GitHub repo (main branch).
-2. In repo Settings → Pages → choose branch `main` & root folder.
-3. Access site at `https://<your-username>.github.io/personal-website/`
-
-## Notes
-- Edits/adds/deletes are persisted to Render's JSON Server.
-- If Render is down, frontend falls back to `db.json` (local) if present.
-- To change glass look quickly, edit the token block at the top of `style.css`.
+## Deploy to GitHub Pages
+1. Put files in the repo root (frontend repo `personal-website`).
+2. Push to GitHub:
+   ```bash
+   git add index.html style.css index.js db.json images/ README.md
+   git commit -m "Shee Parlour final frontend"
+   git push origin main

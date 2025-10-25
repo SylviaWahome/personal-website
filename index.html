@@ -19,13 +19,15 @@
         <a href="#home">Home</a>
         <a href="#about">About</a>
         <a href="#services">Services</a>
+        <a href="#gallery">Gallery</a>
+        <a href="#booking">Booking</a>
         <a href="#contact">Contact</a>
       </nav>
     </div>
   </header>
 
   <main class="container">
-    <!-- HOME -->
+    <!-- HOME (H2: Split hero) -->
     <section id="home" class="glass-panel hero">
       <div class="hero-left">
         <h1>Welcome to Shee Parlour</h1>
@@ -36,16 +38,18 @@
           <input id="search-input" type="search" placeholder="Search services..." class="search" />
         </div>
       </div>
+
       <div class="hero-right">
-        <img src="./images/herbal-facial.jpg" alt="Herbal Facial" class="hero-img" />
+        <img src="./images/hero-nature.jpg" alt="Nature Spa" class="hero-img" />
       </div>
     </section>
 
     <!-- ABOUT -->
     <section id="about" class="glass-panel">
-      <h2>About Us</h2>
+      <h2>About Shee Parlour</h2>
       <p>
         At Shee Parlour we blend natural ingredients, calming ambience and expert care to celebrate your unique beauty.
+        Our vision is to bring beauty and wellness into harmony with nature — sustainable, gentle and bespoke.
       </p>
     </section>
 
@@ -54,6 +58,45 @@
       <h2>Our Nature-Inspired Services</h2>
       <p id="loading-text" class="muted">Loading services…</p>
       <div id="service-list" class="service-container" aria-live="polite"></div>
+    </section>
+
+    <!-- GALLERY -->
+    <section id="gallery" class="glass-panel">
+      <h2>Gallery</h2>
+      <div class="gallery-grid" id="gallery-grid">
+        <img src="./images/herbal-facial.jpg" alt="Herbal Facial">
+        <img src="./images/natural-hair-treatment.jpg" alt="Natural Hair Treatment">
+        <img src="./images/aloe-vera-massage.jpg" alt="Aloe Vera Massage">
+        <img src="./images/clay-mask-detox.jpg" alt="Clay Mask Detox">
+        <img src="./images/floral-pedicure.jpg" alt="Floral Pedicure">
+      </div>
+    </section>
+
+    <!-- BOOKING -->
+    <section id="booking" class="glass-panel">
+      <h2>Booking</h2>
+      <p class="muted">Fill this quick form to request a booking. We'll contact you to confirm.</p>
+      <form id="booking-form" class="booking-form">
+        <div class="form-row">
+          <input id="bk-name" required placeholder="Your name" />
+          <input id="bk-phone" required placeholder="Phone (e.g. 0720 702 829)" />
+        </div>
+        <div class="form-row">
+          <input id="bk-email" type="email" placeholder="Email (optional)" />
+          <select id="bk-service">
+            <option value="">Choose a service</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <input id="bk-date" type="date" />
+          <input id="bk-time" type="time" />
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="primary-btn">Request Booking</button>
+          <button type="button" id="booking-clear" class="secondary-btn">Clear</button>
+        </div>
+      </form>
+      <p id="booking-msg" class="muted" aria-live="polite"></p>
     </section>
 
     <!-- CONTACT -->
@@ -67,7 +110,7 @@
     </section>
   </main>
 
-  <!-- Modal root for Add Service -->
+  <!-- Modal root for Add Service (admin) -->
   <div id="modal-root"></div>
 
   <!-- Leaves + notifications -->
